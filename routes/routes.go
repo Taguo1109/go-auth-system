@@ -13,6 +13,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"go-auth-system/controllers"
+	"go-auth-system/middlewares"
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -20,4 +21,14 @@ func SetupRouter(r *gin.Engine) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
 	r.POST("/register", controllers.Register)
+	r.POST("/login", controllers.Login)
+	r.GET("/profile", middlewares.JWTAuthMiddleware(), func(c *gin.Context) {
+		email, _ := c.Get("email")
+
+		c.JSON(200, gin.H{
+			"message": "Welcome to your profile!",
+			"email":   email,
+		})
+	})
+
 }

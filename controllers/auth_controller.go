@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-auth-system/config"
 	"go-auth-system/models"
+	"go-auth-system/utils"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -18,6 +19,7 @@ import (
  * @Version:  1.0
  */
 
+// Register 會員註冊
 func Register(c *gin.Context) {
 	var input models.User
 
@@ -48,4 +50,37 @@ func Register(c *gin.Context) {
 			"userName": input.Username,
 		},
 	})
+}
+
+// Login 會員登入
+func Login(c *gin.Context) {
+	var input models.User
+	var dbUser models.User
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	// 找出該 Email 的使用者
+	result := config.DB.Where("email = ?", input.Email).First(&dbUser)
+	if result.Error != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email does not exist"})
+		return
+	}
+
+	// 檢查密碼
+	err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(input.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Password"})
+		return
+	}
+
+	// 產生 JWT token
+	token, err := utils.GenerateJWT(dbUser.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   token})
 }
