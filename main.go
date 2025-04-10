@@ -24,6 +24,8 @@ func main() {
 
 	// DB初始化
 	config.ConnectDB()
+	// Redis 初始化
+	config.InitRedis()
 
 	// 自動Create User Table
 	if err := config.DB.AutoMigrate(&models.User{}); err != nil {

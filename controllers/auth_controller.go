@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -9,6 +10,7 @@ import (
 	"go-auth-system/utils"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"time"
 )
 
 /**
@@ -82,6 +84,13 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 	}
+
+	// 快取使用者資料
+	cacheKey := "user:" + dbUser.Email
+	// 使dbUser 變成 JSON 標準格式
+	userBytes, _ := json.Marshal(dbUser)
+	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":      "Login successful",
 		"token":        accessToken,

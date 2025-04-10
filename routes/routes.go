@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-auth-system/controllers"
 	"go-auth-system/middlewares"
-	"net/http"
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -31,17 +30,10 @@ func SetupRouter(r *gin.Engine) {
 	}
 
 	// 需權限的名單
-	auth := r.Group("/")
-	auth.Use(middlewares.JWTAuthMiddleware())
+	user := r.Group("/user")
+	user.Use(middlewares.JWTAuthMiddleware())
 	{
-		auth.GET("/profile", func(c *gin.Context) {
-			email, _ := c.Get("email")
-
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Welcome to your profile!",
-				"email":   email,
-			})
-		})
+		user.GET("/profile", controllers.GetProfile)
 	}
 
 }
