@@ -11,13 +11,16 @@ package models
  */
 
 import (
-	"gorm.io/gorm"
+	"time"
 )
 
 // User 建立User Table
 type User struct {
-	gorm.Model
-	Email    string `gorm:"unique" json:"email"`
-	Password string `json:"password"`
-	Username string `json:"username"`
+	ID        uint   `gorm:"primary"`
+	Email     string `gorm:"unique" json:"email"`
+	Password  string `json:"password"`
+	Username  string `json:"username"`
+	Role      string `json:"role"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

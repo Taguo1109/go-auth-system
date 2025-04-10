@@ -52,6 +52,7 @@ func Register(c *gin.Context) {
 			"id":       input.ID,
 			"email":    input.Email,
 			"userName": input.Username,
+			"role":     input.Role,
 		},
 	})
 }
@@ -87,8 +88,16 @@ func Login(c *gin.Context) {
 
 	// 快取使用者資料
 	cacheKey := "user:" + dbUser.Email
-	// 使dbUser 變成 JSON 標準格式
-	userBytes, _ := json.Marshal(dbUser)
+
+	// 使dbUser 變成 JSON 標準格式 ，safeUser 存取需要的資訊進去
+	safeUser := models.UserDTO{
+		ID:       dbUser.ID,
+		Email:    dbUser.Email,
+		UserName: dbUser.Username,
+		Role:     dbUser.Role,
+	}
+
+	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{

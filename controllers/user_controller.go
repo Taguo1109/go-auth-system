@@ -32,7 +32,7 @@ func GetProfile(c *gin.Context) {
 	cached, err := config.RDB.Get(config.Ctx, cacheKey).Result()
 	if err == nil {
 		// 如果有快取，直接回傳
-		var cachedUser models.User
+		var cachedUser models.UserDTO
 		// json.Unmarshal 將資料JSON格式化
 		if err := json.Unmarshal([]byte(cached), &cachedUser); err == nil {
 			c.JSON(http.StatusOK, gin.H{"user": cachedUser, "from": "cache"})
@@ -49,7 +49,13 @@ func GetProfile(c *gin.Context) {
 	}
 
 	// 3️⃣ 查到後，存入 Redis 快取（設 10 分鐘過期）
-	userBytes, _ := json.Marshal(user)
+	safeUser := models.UserDTO{
+		ID:       user.ID,
+		Email:    user.Email,
+		UserName: user.Username,
+		Role:     user.Role,
+	}
+	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
 	c.JSON(http.StatusOK, gin.H{"user": user, "from": "db"})
 }
