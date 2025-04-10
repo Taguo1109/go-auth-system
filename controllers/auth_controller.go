@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"go-auth-system/config"
 	"go-auth-system/models"
 	"go-auth-system/utils"
@@ -76,11 +78,73 @@ func Login(c *gin.Context) {
 	}
 
 	// 產生 JWT token
-	token, err := utils.GenerateJWT(dbUser.Email)
+	accessToken, refreshToken, err := utils.GenerateJWT(dbUser.Email, dbUser.ID, "User")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"token":   token})
+		"message":      "Login successful",
+		"token":        accessToken,
+		"refreshToken": refreshToken,
+	})
+}
+
+// RefreshToken 重新獲取Token
+func RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refreshToken"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	// 1️⃣ 驗證 refresh token
+	claims := jwt.MapClaims{}
+	fmt.Println("初始化claims:", claims)
+	token, err := jwt.ParseWithClaims(req.RefreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return utils.JwtKey, nil
+	})
+	fmt.Println("賦值後claims:", claims)
+
+	// 檢查是否是refreshToken
+	tokenType, ok := claims["token_type"].(string)
+	if !ok || tokenType != "refresh" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not a refresh token"})
+		return
+	}
+
+	fmt.Print(err)
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		return
+	}
+
+	// 2️⃣ 解析出 email
+	email, ok := claims["email"].(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
+		return
+	}
+
+	// 3️⃣ 用 email 去資料庫撈使用者資訊
+	var dbUser models.User
+	result := config.DB.Where("email = ?", email).First(&dbUser)
+	if result.Error != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	// 4️⃣ 產生新的 access + refresh token
+	newAccessToken, newRefreshToken, err := utils.GenerateJWT(dbUser.Email, dbUser.ID, "User")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate new tokens"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Token refreshed successfully",
+		"accessToken":  newAccessToken,
+		"refreshToken": newRefreshToken,
+	})
 }

@@ -53,6 +53,9 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 6️⃣ 直接使用解析出的 claims（已是 jwt.MapClaims）
 		//     - 將 email 設入 Gin Context 傳遞給後面 handler 使用
 		c.Set("email", claims["email"])
+		c.Set("email", claims["email"])
+		c.Set("userId", claims["userId"])
+		c.Set("role", claims["role"])
 
 		// 7️⃣ 這一行是放行（讓後面的 handler 繼續執行）
 		c.Next()
