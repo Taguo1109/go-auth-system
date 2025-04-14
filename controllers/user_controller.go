@@ -52,7 +52,7 @@ func GetProfile(c *gin.Context) {
 	safeUser := models.UserDTO{
 		ID:       user.ID,
 		Email:    user.Email,
-		UserName: user.Username,
+		Username: user.Username,
 		Role:     user.Role,
 	}
 	userBytes, _ := json.Marshal(safeUser)

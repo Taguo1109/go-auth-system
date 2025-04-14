@@ -13,6 +13,12 @@ package models
 type UserDTO struct {
 	ID       uint   `json:"id"`
 	Email    string `json:"email"`
-	UserName string `json:"username"`
+	Username string `json:"username"`
 	Role     string `json:"role"`
+}
+
+type UserTokenDTO struct {
+	Message      string `json:"message"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }

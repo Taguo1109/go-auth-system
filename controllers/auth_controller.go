@@ -93,24 +93,23 @@ func Login(c *gin.Context) {
 	safeUser := models.UserDTO{
 		ID:       dbUser.ID,
 		Email:    dbUser.Email,
-		UserName: dbUser.Username,
+		Username: dbUser.Username,
 		Role:     dbUser.Role,
 	}
-
 	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":      "Login successful",
-		"token":        accessToken,
-		"refreshToken": refreshToken,
+		"message":       "Login successful",
+		"token":         accessToken,
+		"refresh_token": refreshToken,
 	})
 }
 
 // RefreshToken 重新獲取Token
 func RefreshToken(c *gin.Context) {
 	var req struct {
-		RefreshToken string `json:"refreshToken"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -161,8 +160,8 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":      "Token refreshed successfully",
-		"accessToken":  newAccessToken,
-		"refreshToken": newRefreshToken,
+		"message":       "Token refreshed successfully",
+		"access_token":  newAccessToken,
+		"refresh_token": newRefreshToken,
 	})
 }
