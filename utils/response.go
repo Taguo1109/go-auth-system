@@ -23,7 +23,7 @@ type JsonResult struct {
 }
 
 // ReturnSuccess 回傳成功
-func ReturnSuccess(c *gin.Context, code int, msg interface{}, data interface{}) {
+func ReturnSuccess(c *gin.Context, data interface{}) {
 	json := &JsonResult{StatusCode: Success, Msg: "Success", Data: data}
 	c.JSON(http.StatusOK, json)
 }

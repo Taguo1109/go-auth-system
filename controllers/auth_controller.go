@@ -14,7 +14,7 @@ import (
 )
 
 /**
- * @File: auth_controller.go.go
+ * @File: auth_controller.go
  * @Description:
  *
  * @Author: Timmy

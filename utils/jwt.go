@@ -8,7 +8,7 @@ import (
 )
 
 /**
- * @File: jwt.go.go
+ * @File: jwt.go
  * @Description:
  *
  * @Author: Timmy

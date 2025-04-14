@@ -9,7 +9,7 @@ import (
 )
 
 /**
- * @File: jwt_middleware.go.go
+ * @File: jwt_middleware.go
  * @Description:
  *
  * @Author: Timmy

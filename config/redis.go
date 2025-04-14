@@ -8,7 +8,7 @@ import (
 )
 
 /**
- * @File: redis.go.go
+ * @File: redis.go
  * @Description:
  *
  * @Author: Timmy

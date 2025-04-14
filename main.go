@@ -1,7 +1,7 @@
 package main
 
 /**
- * @File: main.go.go
+ * @File: main.go
  * @Description:
  *
  *	專案入口8080

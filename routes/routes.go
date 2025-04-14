@@ -1,7 +1,7 @@
 package routes
 
 /**
- * @File: routes.go.go
+ * @File: routes.go
  * @Description:
  *
  * @Author: Timmy

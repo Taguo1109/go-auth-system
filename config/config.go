@@ -10,7 +10,7 @@ import (
 )
 
 /**
- * @File: config.go.go
+ * @File: config.go
  * @Description:
  *
  * @Author: Timmy

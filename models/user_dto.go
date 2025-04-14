@@ -1,7 +1,7 @@
 package models
 
 /**
- * @File: user_dto.go.go
+ * @File: user_dto.go
  * @Description:
  *
  * @Author: Timmy

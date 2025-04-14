@@ -10,7 +10,7 @@ import (
 )
 
 /**
- * @File: user_controller.go.go
+ * @File: user_controller.go
  * @Description:
  *
  * @Author: Timmy
