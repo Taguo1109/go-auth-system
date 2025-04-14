@@ -18,6 +18,9 @@ import (
 
 func SetupRouter(r *gin.Engine) {
 
+	// 加入全域錯誤攔截器
+	r.Use(middlewares.GlobalErrorHandler())
+
 	// 白名單
 	public := r.Group("/")
 	{
@@ -29,11 +32,19 @@ func SetupRouter(r *gin.Engine) {
 		})
 	}
 
+	// 全域錯誤測試
+	errTest := r.Group("/err")
+	{
+		errTest.GET("test-panic", controllers.TestPanic)
+	}
+
 	// 需權限的名單
 	user := r.Group("/user")
 	user.Use(middlewares.JWTAuthMiddleware())
 	{
 		user.GET("/profile", controllers.GetProfile)
+		// 測試 panic 路由
+		user.GET("/test-panic", controllers.TestPanic)
 	}
 
 }
