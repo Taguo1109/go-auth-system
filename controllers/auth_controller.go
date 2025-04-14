@@ -43,7 +43,7 @@ func Register(c *gin.Context) {
 	// 建立使用者
 	result := config.DB.Create(&input)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Email already exists"})
+		utils.ReturnError(c, utils.CodeEmailExists, "該用戶已存在")
 		return
 	}
 

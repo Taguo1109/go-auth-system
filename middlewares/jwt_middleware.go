@@ -27,7 +27,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 2️⃣ 檢查 Header 是否以 "Bearer " 開頭
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			// ➜ Header 不正確（沒帶或格式錯誤），回傳 401 並中止後續處理
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing or invalid"})
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{StatusCode: "401", Msg: "Authorization header missing or invalid", MsgDetail: "Header 權限格式不正確，請確認"})
 			c.Abort() // ❗這行是中止 gin 的 request flow
 			return
 		}
@@ -45,7 +45,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		// 5️⃣ 確認 token 有效，若驗證失敗則中止請求
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{StatusCode: "401", Msg: "Invalid token", MsgDetail: "Token 無效請確認"})
 			c.Abort()
 			return
 		}

@@ -16,7 +16,7 @@ import (
  */
 
 type JsonResult struct {
-	StatusCode int         `json:"status_code"`
+	StatusCode string      `json:"status_code"`
 	Msg        interface{} `json:"msg"`
 	MsgDetail  string      `json:"msg_detail"`
 	Data       interface{} `json:"data"`
