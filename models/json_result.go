@@ -31,6 +31,6 @@ func ReturnSuccess(c *gin.Context, code int, msg interface{}, data interface{}) 
 	c.JSON(http.StatusOK, json)
 }
 func ReturnError(c *gin.Context, code int, msg interface{}) {
-	json := &JsonResult{StatusCode: code, Msg: msg}
+	json := &JsonErrorResult{StatusCode: code, Msg: msg}
 	c.JSON(http.StatusOK, json)
 }
