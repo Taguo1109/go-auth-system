@@ -30,6 +30,7 @@ func SetupRouter(r *gin.Engine) {
 		r.GET("/ping", func(c *gin.Context) {
 			c.JSON(200, gin.H{"message": "pong"})
 		})
+		public.POST("/logout", controllers.LogoutHandler)
 	}
 
 	// 全域錯誤測試

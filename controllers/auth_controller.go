@@ -99,27 +99,33 @@ func Login(c *gin.Context) {
 	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":       "Login successful",
-		"token":         accessToken,
-		"refresh_token": refreshToken,
-	})
+	// 設置 SameSite 模式為 Lax
+	c.SetSameSite(http.SameSiteLaxMode)
+	// 設定 access token Cookie，過期時間以秒計算（2 小時）
+	c.SetCookie("access_token", accessToken, 2*60*60, "/", "localhost", true, true)
+	// 設定 refresh token Cookie，過期 7 天
+	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "localhost", true, true)
+
+	utils.ReturnSuccess(c, nil, "Login successful")
 }
 
 // RefreshToken 重新獲取Token
 func RefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	// 1️⃣ 從 Cookie 中讀取 refresh token 驗證 refresh token
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		c.JSON(http.StatusUnauthorized, utils.JsonResult{
+			StatusCode: "401",
+			Msg:        "Missing refresh token in cookie",
+			MsgDetail:  "找不到 Cookie 裡的refresh_token，請確認",
+		})
 		return
 	}
-	// 1️⃣ 驗證 refresh token
+
 	claims := jwt.MapClaims{}
 	fmt.Println("初始化claims:", claims)
-	token, err := jwt.ParseWithClaims(req.RefreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return utils.JwtKey, nil
 	})
 	fmt.Println("賦值後claims:", claims)
@@ -159,9 +165,21 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":       "Token refreshed successfully",
-		"access_token":  newAccessToken,
-		"refresh_token": newRefreshToken,
-	})
+	// 設置 SameSite 模式為 Lax
+	c.SetSameSite(http.SameSiteLaxMode)
+	// 設置新的 Cookie，更新掉之前的 tokens
+	c.SetCookie("access_token", newAccessToken, 2*60*60, "/", "localhost", true, true)
+	c.SetCookie("refresh_token", newRefreshToken, 7*24*60*60, "/", "localhost", true, true)
+
+	utils.ReturnSuccess(c, nil, "Token refreshed successfully")
+}
+
+// LogoutHandler 登出
+func LogoutHandler(c *gin.Context) {
+	// 清除 access_token cookie
+	c.SetCookie("access_token", "", -1, "/", "localhost", true, true)
+	// 清除 refresh_token cookie
+	c.SetCookie("refresh_token", "", -1, "/", "localhost", true, true)
+
+	utils.ReturnSuccess(c, nil, "Logout successful")
 }

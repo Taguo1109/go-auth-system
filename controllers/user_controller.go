@@ -57,5 +57,5 @@ func GetProfile(c *gin.Context) {
 	}
 	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
-	c.JSON(http.StatusOK, gin.H{"user": user, "from": "db"})
+	c.JSON(http.StatusOK, gin.H{"user": safeUser, "from": "db"})
 }

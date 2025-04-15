@@ -5,7 +5,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-system/utils"
 	"net/http"
-	"strings"
 )
 
 /**
@@ -22,18 +21,20 @@ import (
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1️⃣ 從 Header 中讀取 Authorization 欄位
-		authHeader := c.GetHeader("Authorization")
+		//authHeader := c.GetHeader("Authorization")
+		// 1️⃣ 從 cookie 中讀取 access_token
+		tokenString, err := c.Cookie("access_token")
 
 		// 2️⃣ 檢查 Header 是否以 "Bearer " 開頭
-		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			// ➜ Header 不正確（沒帶或格式錯誤），回傳 401 並中止後續處理
-			c.JSON(http.StatusUnauthorized, utils.JsonResult{StatusCode: "401", Msg: "Authorization header missing or invalid", MsgDetail: "Header 權限格式不正確，請確認"})
-			c.Abort() // ❗這行是中止 gin 的 request flow
+		if err != nil || tokenString == "" {
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{
+				StatusCode: "401",
+				Msg:        "No token provided in cookie",
+				MsgDetail:  "請先登入或確認 Cookie 中是否正確設定 token",
+			})
+			c.Abort()
 			return
 		}
-
-		// 3️⃣ 取得純粹的 Token 部分（去掉前綴 "Bearer "）
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// 4️⃣ 驗證並解析 JWT Token（ParseWithClaims 會同時做 signature 驗證與解析 payload）
 		//    - claims：token 的內容（例如 email、userId、role）會被填入這個 map
@@ -52,7 +53,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		// 6️⃣ 直接使用解析出的 claims（已是 jwt.MapClaims）
 		//     - 將 email 設入 Gin Context 傳遞給後面 handler 使用
-		c.Set("email", claims["email"])
 		c.Set("email", claims["email"])
 		c.Set("userId", claims["userId"])
 		c.Set("role", claims["role"])
