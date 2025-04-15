@@ -21,3 +21,10 @@ type UserLoginDTO struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type UserRegisterDTO struct {
+	Email    string `gorm:"type:varchar(191);unique" json:"email" binding:"required"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Role     string `json:"role" binding:"required"`
+}

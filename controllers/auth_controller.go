@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-system/config"
 	"go-auth-system/models"
@@ -29,15 +31,29 @@ import (
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param user body models.User true "使用者資訊"
+// @Param user body models.UserRegisterDTO true "使用者資訊（Email、Username、Password、Role 為必填）"
 // @Success 200 {object} utils.JsonResult
+// @Failure 400 {object} utils.JsonResult
 // @Failure 500 {object} utils.JsonResult
 // @Router /register [post]
 func Register(c *gin.Context) {
-	var input models.User
+	var input models.UserRegisterDTO
 
-	if err := c.ShouldBind(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&input); err != nil {
+
+		// 解析欄位錯誤資訊
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			errFields := make(map[string]string)
+			for _, fe := range ve {
+				errFields[fe.Field()] = "此欄位為必填"
+			}
+			utils.ReturnError(c, utils.CodeInvalidParams, errFields, "請檢查欄位是否填寫完整")
+			return
+		}
+
+		// 其他錯誤（不是 validator 格式錯誤）
+		utils.ReturnError(c, utils.CodeInvalidParams, err.Error())
 		return
 	}
 
@@ -49,8 +65,16 @@ func Register(c *gin.Context) {
 	}
 	input.Password = string(hashedPassword)
 
+	// 將 DTO 映射成 DB entity
+	userEntity := models.User{
+		Email:    input.Email,
+		Username: input.Username,
+		Password: string(hashedPassword),
+		Role:     "User", // 預設角色
+	}
+
 	// 建立使用者
-	result := config.DB.Create(&input)
+	result := config.DB.Create(&userEntity)
 	if result.Error != nil {
 		utils.ReturnError(c, utils.CodeEmailExists, "該用戶已存在")
 		return
@@ -58,7 +82,6 @@ func Register(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": input.Email + " :User registered successfully!",
 		"user": gin.H{
-			"id":       input.ID,
 			"email":    input.Email,
 			"userName": input.Username,
 			"role":     input.Role,
@@ -135,7 +158,7 @@ func Login(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} utils.JsonResult
 // @Failure 401 {object} utils.JsonResult
-// @Router /register [post]
+// @Router /refresh [post]
 func RefreshToken(c *gin.Context) {
 
 	// 1️⃣ 從 Cookie 中讀取 refresh token 驗證 refresh token

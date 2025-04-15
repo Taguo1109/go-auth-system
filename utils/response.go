@@ -38,10 +38,11 @@ func ReturnSuccess(c *gin.Context, data interface{}, detailMsg ...string) {
 
 // ReturnError 回傳統一格式的錯誤 JSON 響應。
 // 參數 	code 為業務錯誤碼，detailMsg 為可選的詳細錯誤說明（msg_detail）。
-func ReturnError(c *gin.Context, errCode ErrorCode, detailMsg ...string) {
+func ReturnError(c *gin.Context, errCode ErrorCode, data interface{}, detailMsg ...string) {
 	response := JsonResult{
 		StatusCode: errCode.StatusCode,
 		Msg:        errCode.Message,
+		Data:       data,
 	}
 	if len(detailMsg) > 0 {
 		response.MsgDetail = detailMsg[0]
