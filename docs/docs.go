@@ -312,16 +312,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "test@example.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "P@ssw0rd"
                 },
                 "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "User",
+                        "Admin",
+                        "SuperAdmin"
+                    ],
+                    "example": "User"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "testUser01"
                 }
             }
         },

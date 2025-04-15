@@ -14,7 +14,10 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"go-auth-system/config"
+	"go-auth-system/middlewares"
 	"go-auth-system/models"
 	"go-auth-system/routes"
 	"log"
@@ -40,7 +43,12 @@ import (
 // @name Authorization
 // @description 請求頭中必須添加 Authorization Bearer {token}，例如 "Authorization: Bearer abcxyz"
 func main() {
-
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		// 註冊密碼驗證器
+		_ = v.RegisterValidation("pwd_validation", middlewares.UserPwd)
+		// 註冊使用者名稱驗證器
+		_ = v.RegisterValidation("username_validation", middlewares.UserName)
+	}
 	// DB初始化
 	config.ConnectDB()
 	// Redis 初始化
@@ -53,7 +61,9 @@ func main() {
 
 	r := gin.Default()
 	routes.SetupRouter(r)
+
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+
 }

@@ -10,12 +10,20 @@ definitions:
   models.UserRegisterDTO:
     properties:
       email:
+        example: test@example.com
         type: string
       password:
+        example: P@ssw0rd
         type: string
       role:
+        enum:
+        - User
+        - Admin
+        - SuperAdmin
+        example: User
         type: string
       username:
+        example: testUser01
         type: string
     required:
     - email

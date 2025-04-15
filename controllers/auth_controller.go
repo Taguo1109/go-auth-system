@@ -41,18 +41,12 @@ func Register(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 
-		// 解析欄位錯誤資訊
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
-			errFields := make(map[string]string)
-			for _, fe := range ve {
-				errFields[fe.Field()] = "此欄位為必填"
-			}
-			utils.ReturnError(c, utils.CodeParamInvalid, errFields, "請檢查欄位是否填寫完整")
+			errFields := utils.ExtractFieldErrorMessages(input, ve)
+			utils.ReturnError(c, utils.CodeParamInvalid, errFields, "欄位驗證失敗")
 			return
 		}
-
-		// 其他錯誤（不是 validator 格式錯誤）
 		utils.ReturnError(c, utils.CodeParamInvalid, err.Error())
 		return
 	}
@@ -70,7 +64,7 @@ func Register(c *gin.Context) {
 		Email:    input.Email,
 		Username: input.Username,
 		Password: string(hashedPassword),
-		Role:     "User", // 預設角色
+		Role:     input.Role,
 	}
 
 	// 建立使用者

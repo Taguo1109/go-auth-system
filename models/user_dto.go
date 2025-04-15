@@ -23,8 +23,8 @@ type UserLoginDTO struct {
 }
 
 type UserRegisterDTO struct {
-	Email    string `gorm:"type:varchar(191);unique" json:"email" binding:"required"`
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Role     string `json:"role" binding:"required"`
+	Email    string `json:"email" binding:"required,email" validateMsg:"required=Email 為必填,email=Email 格式錯誤" example:"test@example.com"`
+	Username string `json:"username" binding:"required,username_validation" validateMsg:"required=使用者名稱為必填,username_validation=使用者名稱只能是英文與數字，且長度為 6~20 字" example:"testUser01"`
+	Password string `json:"password" binding:"required,pwd_validation" validateMsg:"required=密碼為必填,pwd_validation=密碼需包含至少一個大寫與一個小寫字母，且長度 6~30 字" example:"P@ssw0rd"`
+	Role     string `json:"role" binding:"required,oneof=User Admin SuperAdmin" validateMsg:"required=角色為必填,oneof=角色只能是 User、Admin 或 SuperAdmin" example:"User"`
 }
