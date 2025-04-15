@@ -24,6 +24,84 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/err/assertion-panic": {
+            "get": {
+                "description": "故意觸發 panic 來驗證全域錯誤攔截器是否生效",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debug"
+                ],
+                "summary": "測試 panic",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/nil-panic": {
+            "get": {
+                "description": "故意觸發 panic 來驗證全域錯誤攔截器是否生效",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debug"
+                ],
+                "summary": "測試 panic",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/err/slice-panic": {
+            "get": {
+                "description": "故意觸發 panic 來驗證全域錯誤攔截器是否生效",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debug"
+                ],
+                "summary": "測試 panic",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
         "/err/test-panic": {
             "get": {
                 "description": "故意觸發 panic 來驗證全域錯誤攔截器是否生效",

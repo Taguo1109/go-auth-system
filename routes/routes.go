@@ -41,6 +41,9 @@ func SetupRouter(r *gin.Engine) {
 	// 全域錯誤測試
 	errTest := r.Group("/err")
 	{
+		errTest.GET("assertion-panic", controllers.AssertionPanic)
+		errTest.GET("slice-panic", controllers.SlicePanic)
+		errTest.GET("nil-panic", controllers.NilPanic)
 		errTest.GET("test-panic", controllers.TestPanic)
 	}
 
