@@ -22,9 +22,8 @@ type ErrorCode struct {
 }
 
 var (
-	CodeParamInvalid  = ErrorCode{"4001", "Invalid parameters"}
-	CodeEmailExists   = ErrorCode{"4002", "Email already exists"}
-	CodeInvalidParams = ErrorCode{"4003", "Invalid parameters"}
-	CodeUnauthorized  = ErrorCode{"4010", "Unauthorized"}
-	CodeServerError   = ErrorCode{"5000", "Internal server error"}
+	CodeParamInvalid = ErrorCode{"4001", "Invalid parameters"}
+	CodeEmailExists  = ErrorCode{"4002", "Email already exists"}
+	CodeUnauthorized = ErrorCode{"4010", "Unauthorized"}
+	CodeServerError  = ErrorCode{"5000", "Internal server error"}
 )

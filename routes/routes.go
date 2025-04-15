@@ -52,8 +52,6 @@ func SetupRouter(r *gin.Engine) {
 	user.Use(middlewares.JWTAuthMiddleware())
 	{
 		user.GET("/profile", controllers.GetProfile)
-		// 測試 panic 路由
-		user.GET("/test-panic", controllers.TestPanic)
 	}
 
 }

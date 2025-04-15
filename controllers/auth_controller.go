@@ -48,12 +48,12 @@ func Register(c *gin.Context) {
 			for _, fe := range ve {
 				errFields[fe.Field()] = "此欄位為必填"
 			}
-			utils.ReturnError(c, utils.CodeInvalidParams, errFields, "請檢查欄位是否填寫完整")
+			utils.ReturnError(c, utils.CodeParamInvalid, errFields, "請檢查欄位是否填寫完整")
 			return
 		}
 
 		// 其他錯誤（不是 validator 格式錯誤）
-		utils.ReturnError(c, utils.CodeInvalidParams, err.Error())
+		utils.ReturnError(c, utils.CodeParamInvalid, err.Error())
 		return
 	}
 
