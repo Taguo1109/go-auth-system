@@ -13,6 +13,13 @@ import "github.com/gin-gonic/gin"
  */
 
 // TestPanic 測試觸發 panic，用於驗證 GlobalErrorHandler。
+// @Summary 測試 panic
+// @Description 故意觸發 panic 來驗證全域錯誤攔截器是否生效
+// @Tags Debug
+// @Produce json
+// @Success 200 {object} utils.JsonResult
+// @Failure 500 {object} utils.JsonResult
+// @Router /err/test-panic [get]
 func TestPanic(c *gin.Context) {
 	// ✅ 測試 #1：interface type assertion panic
 	//var x any = 123

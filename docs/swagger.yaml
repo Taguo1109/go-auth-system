@@ -1,0 +1,149 @@
+basePath: /
+definitions:
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserLoginDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  utils.JsonResult:
+    properties:
+      data: {}
+      msg: {}
+      msg_detail:
+        type: string
+      status_code:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: 登入系統的RESTful API接口文檔
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: 登入系統API
+  version: "1.0"
+paths:
+  /err/test-panic:
+    get:
+      description: 故意觸發 panic 來驗證全域錯誤攔截器是否生效
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+      summary: 測試 panic
+      tags:
+      - Debug
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 登入並取得 JWT Token
+      parameters:
+      - description: 登入資訊
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLoginDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+      summary: 使用者登入
+      tags:
+      - Auth
+  /logout:
+    post:
+      description: 清除使用者的 access_token 和 refresh_token cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功登出訊息
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+      summary: 使用者登出
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: 重新取得Token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+      summary: 重新獲取Token
+      tags:
+      - Auth
+  /user/profile:
+    get:
+      description: 登入後獲取資料
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.JsonResult'
+      summary: 獲取基本資料
+      tags:
+      - User
+securityDefinitions:
+  BearerAuth:
+    description: '請求頭中必須添加 Authorization Bearer {token}，例如 "Authorization: Bearer
+      abcxyz"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

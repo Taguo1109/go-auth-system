@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-auth-system/config"
 	"go-auth-system/models"
+	"go-auth-system/utils"
 	"net/http"
 	"time"
 )
@@ -19,6 +20,14 @@ import (
  * @Version:  1.0
  */
 
+// GetProfile 獲取用戶基本資料
+// @Summary 獲取基本資料
+// @Description 登入後獲取資料
+// @Tags User
+// @Produce json
+// @Success 200 {object} utils.JsonResult
+// @Failure 500 {object} utils.JsonResult
+// @Router /user/profile [get]
 func GetProfile(c *gin.Context) {
 	emailVal, exists := c.Get("email")
 	if !exists {
@@ -35,7 +44,7 @@ func GetProfile(c *gin.Context) {
 		var cachedUser models.UserDTO
 		// json.Unmarshal 將資料JSON格式化
 		if err := json.Unmarshal([]byte(cached), &cachedUser); err == nil {
-			c.JSON(http.StatusOK, gin.H{"user": cachedUser, "from": "cache"})
+			utils.ReturnSuccess(c, cachedUser, "from cache")
 			return
 		}
 	}
@@ -57,5 +66,5 @@ func GetProfile(c *gin.Context) {
 	}
 	userBytes, _ := json.Marshal(safeUser)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
-	c.JSON(http.StatusOK, gin.H{"user": safeUser, "from": "db"})
+	utils.ReturnSuccess(c, safeUser, "from db")
 }

@@ -12,7 +12,10 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go-auth-system/controllers"
+	_ "go-auth-system/docs"
 	"go-auth-system/middlewares"
 )
 
@@ -20,6 +23,8 @@ func SetupRouter(r *gin.Engine) {
 
 	// 加入全域錯誤攔截器
 	r.Use(middlewares.GlobalErrorHandler())
+	// Swagger文檔路由
+	setupSwaggerRoutes(r)
 
 	// 白名單
 	public := r.Group("/")
@@ -48,4 +53,9 @@ func SetupRouter(r *gin.Engine) {
 		user.GET("/test-panic", controllers.TestPanic)
 	}
 
+}
+
+// setupSwaggerRoutes 設置Swagger文檔路由
+func setupSwaggerRoutes(r *gin.Engine) {
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

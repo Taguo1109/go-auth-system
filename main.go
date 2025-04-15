@@ -20,6 +20,25 @@ import (
 	"log"
 )
 
+// @title           登入系統API
+// @version         1.0
+// @description     登入系統的RESTful API接口文檔
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.example.com/support
+// @contact.email  support@example.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description 請求頭中必須添加 Authorization Bearer {token}，例如 "Authorization: Bearer abcxyz"
 func main() {
 
 	// DB初始化

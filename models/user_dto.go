@@ -17,8 +17,7 @@ type UserDTO struct {
 	Role     string `json:"role"`
 }
 
-type UserTokenDTO struct {
-	Message      string `json:"message"`
-	Token        string `json:"token"`
-	RefreshToken string `json:"refresh_token"`
+type UserLoginDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

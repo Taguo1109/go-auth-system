@@ -24,6 +24,15 @@ import (
  */
 
 // Register 會員註冊
+// @Summary 使用者註冊
+// @Description 新增一個使用者帳號
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body models.User true "使用者資訊"
+// @Success 200 {object} utils.JsonResult
+// @Failure 500 {object} utils.JsonResult
+// @Router /register [post]
 func Register(c *gin.Context) {
 	var input models.User
 
@@ -58,6 +67,15 @@ func Register(c *gin.Context) {
 }
 
 // Login 會員登入
+// @Summary 使用者登入
+// @Description 登入並取得 JWT Token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param login body models.UserLoginDTO true "登入資訊"
+// @Success 200 {object} utils.JsonResult
+// @Failure 401 {object} utils.JsonResult
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var input models.User
 	var dbUser models.User
@@ -110,6 +128,14 @@ func Login(c *gin.Context) {
 }
 
 // RefreshToken 重新獲取Token
+// @Summary 重新獲取Token
+// @Description 重新取得Token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} utils.JsonResult
+// @Failure 401 {object} utils.JsonResult
+// @Router /register [post]
 func RefreshToken(c *gin.Context) {
 
 	// 1️⃣ 從 Cookie 中讀取 refresh token 驗證 refresh token
@@ -175,6 +201,12 @@ func RefreshToken(c *gin.Context) {
 }
 
 // LogoutHandler 登出
+// @Summary 使用者登出
+// @Description 清除使用者的 access_token 和 refresh_token cookie
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} utils.JsonResult "成功登出訊息"
+// @Router /logout [post]
 func LogoutHandler(c *gin.Context) {
 	// 清除 access_token cookie
 	c.SetCookie("access_token", "", -1, "/", "localhost", true, true)
