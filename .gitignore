@@ -26,6 +26,7 @@ pkg/
 
 # Environment / credentials
 .env
+.env*
 .env.local
 .env.*.local
 

@@ -32,7 +32,7 @@ swag init
 
 ### 3️⃣ 建立資料庫與 .env 環境設定（如果有）
 ```yaml
--- .env 規格
+-- .env.local 規格
 DB_USER=
 DB_PASSWORD=
 DB_HOST=127.0.0.1
