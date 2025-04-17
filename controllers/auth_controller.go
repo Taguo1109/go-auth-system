@@ -173,6 +173,13 @@ func RefreshToken(c *gin.Context) {
 		return utils.JwtKey, nil
 	})
 
+	// 檢查Redis 是否存在黑名單
+	isBlacklisted, _ := config.RDB.Exists(config.Ctx, "blacklist:refresh_token:"+input.RefreshToken).Result()
+	if isBlacklisted == 1 {
+		utils.ReturnError(c, utils.CodeUnauthorized, nil, "refresh_token 已失效，請重新登入")
+		return
+	}
+
 	// 驗證 token 是否有效 & 是 refresh token
 	if err != nil || !token.Valid || claims["token_type"] != "refresh" {
 		utils.ReturnError(c, utils.CodeUnauthorized, nil, "refresh_token 無效或過期")
@@ -225,10 +232,32 @@ func RefreshToken(c *gin.Context) {
 // @Router /logout [post]
 func LogoutHandler(c *gin.Context) {
 
-	// 清除 access_token cookie
-	c.SetCookie("access_token", "", -1, "/", "localhost", true, true)
-	// 清除 refresh_token cookie
-	c.SetCookie("refresh_token", "", -1, "/", "localhost", true, true)
-
+	var input models.UserDTO
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.ReturnError(c, utils.CodeBadRequest, nil, "格式錯誤")
+		return
+	}
+	// 1️⃣ access_token 放進黑名單
+	accessClaims, err := utils.ParseToken(input.AccessToken)
+	if err == nil {
+		if exp, ok := accessClaims["exp"].(float64); ok {
+			ttl := time.Until(time.Unix(int64(exp), 0))
+			// 若還沒過期則加入黑名單
+			if ttl > 0 {
+				config.RDB.Set(c, "blacklist:access_token:"+input.AccessToken, "1", ttl)
+			}
+		}
+	}
+	// 2️⃣ refresh_token 放進黑名單
+	refreshClaims, err := utils.ParseToken(input.RefreshToken)
+	if err == nil {
+		if exp, ok := refreshClaims["exp"].(float64); ok {
+			ttl := time.Until(time.Unix(int64(exp), 0))
+			// 若還沒過期則加入黑名單
+			if ttl > 0 {
+				config.RDB.Set(c, "blacklist:refresh_token:"+input.RefreshToken, "1", ttl)
+			}
+		}
+	}
 	utils.ReturnSuccess(c, nil, "Logout successful")
 }

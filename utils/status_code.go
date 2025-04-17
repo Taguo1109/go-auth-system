@@ -22,6 +22,7 @@ type ErrorCode struct {
 }
 
 var (
+	CodeBadRequest   = ErrorCode{"4000", "Bad Request: Invalid format"}
 	CodeParamInvalid = ErrorCode{"4001", "Invalid parameters"}
 	CodeEmailExists  = ErrorCode{"4002", "Email already exists"}
 	CodeUnauthorized = ErrorCode{"4010", "Unauthorized"}

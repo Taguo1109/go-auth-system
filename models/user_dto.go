@@ -30,6 +30,11 @@ type UserLoginResponseDTO struct {
 	Role     string `json:"role"`
 }
 
+type UserLogoutDTO struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type UserRegisterDTO struct {
 	Email    string `json:"email" binding:"required,email" validateMsg:"required=Email 為必填,email=Email 格式錯誤" example:"test@example.com"`
 	Username string `json:"username" binding:"required,username_validation" validateMsg:"required=使用者名稱為必填,username_validation=使用者名稱只能是英文與數字，且長度為 6~20 字" example:"testUser01"`

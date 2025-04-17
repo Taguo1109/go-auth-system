@@ -3,6 +3,7 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"go-auth-system/config"
 	"go-auth-system/utils"
 	"net/http"
 	"strings"
@@ -38,6 +39,18 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 3️⃣ 擷取 Bearer Token 的實際內容
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
+		// Redis 黑名單檢查
+		blacklisted, _ := config.RDB.Exists(config.Ctx, "blacklist:access_token:"+tokenString).Result()
+		if blacklisted == 1 {
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{
+				StatusCode: "401",
+				Msg:        "Token is Logout and inValid",
+				MsgDetail:  "Token 已被登出或無效",
+			})
+			c.Abort()
+			return
+		}
+
 		// 4️⃣ 驗證並解析 JWT Token
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -50,6 +63,17 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 				StatusCode: "401",
 				Msg:        "Invalid token",
 				MsgDetail:  "Token 無效或已過期，請重新登入",
+			})
+			c.Abort()
+			return
+		}
+
+		// 🚨 token_type 檢查：若為 refresh，拒絕使用
+		if tokenType, ok := claims["token_type"]; ok && tokenType == "refresh" {
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{
+				StatusCode: "401",
+				Msg:        "Invalid token type",
+				MsgDetail:  "請使用 access token 進行此操作",
 			})
 			c.Abort()
 			return

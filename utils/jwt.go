@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
@@ -27,7 +28,7 @@ func GenerateJWT(email string, userId uint, role string) (string, string, error)
 		"email":  email,
 		"userId": userId,
 		"role":   role,
-		"exp":    time.Now().Add(2 * time.Hour).Unix(),
+		"exp":    time.Now().Add(30 * time.Second).Unix(),
 	}
 	accessTokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessToken, err := accessTokenObj.SignedString(JwtKey)
@@ -39,7 +40,7 @@ func GenerateJWT(email string, userId uint, role string) (string, string, error)
 	refreshClaims := jwt.MapClaims{
 		"email":      email,
 		"token_type": "refresh", // 來辨別refresh 提供Refresh的API使用
-		"exp":        time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp":        time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	refreshTokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
@@ -49,4 +50,22 @@ func GenerateJWT(email string, userId uint, role string) (string, string, error)
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+// ParseToken 解析 JWT 並回傳 claims（不做類型轉換）
+func ParseToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return JwtKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 驗證 token 是否有效，且 claims 是 MapClaims
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, errors.New("invalid token")
 }
