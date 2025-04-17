@@ -25,6 +25,7 @@ import (
 // @Description 登入後獲取資料
 // @Tags User
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} utils.JsonResult
 // @Failure 500 {object} utils.JsonResult
 // @Router /user/profile [get]
@@ -41,7 +42,7 @@ func GetProfile(c *gin.Context) {
 	cached, err := config.RDB.Get(config.Ctx, cacheKey).Result()
 	if err == nil {
 		// 如果有快取，直接回傳
-		var cachedUser models.UserDTO
+		var cachedUser models.UserLoginResponseDTO
 		// json.Unmarshal 將資料JSON格式化
 		if err := json.Unmarshal([]byte(cached), &cachedUser); err == nil {
 			utils.ReturnSuccess(c, cachedUser, "from cache")
@@ -58,7 +59,7 @@ func GetProfile(c *gin.Context) {
 	}
 
 	// 3️⃣ 查到後，存入 Redis 快取（設 10 分鐘過期）
-	safeUser := models.UserDTO{
+	safeUser := models.UserLoginResponseDTO{
 		ID:       user.ID,
 		Email:    user.Email,
 		Username: user.Username,

@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-system/utils"
 	"net/http"
+	"strings"
 )
 
 /**
@@ -21,24 +22,23 @@ import (
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1️⃣ 從 Header 中讀取 Authorization 欄位
-		//authHeader := c.GetHeader("Authorization")
-		// 1️⃣ 從 cookie 中讀取 access_token
-		tokenString, err := c.Cookie("access_token")
+		authHeader := c.GetHeader("Authorization")
 
 		// 2️⃣ 檢查 Header 是否以 "Bearer " 開頭
-		if err != nil || tokenString == "" {
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, utils.JsonResult{
 				StatusCode: "401",
-				Msg:        "No token provided in cookie",
-				MsgDetail:  "請先登入或確認 Cookie 中是否正確設定 token",
+				Msg:        "No token provided in Authorization header",
+				MsgDetail:  "請先登入或確認 Request Header 中的 Authorization 格式是否為 Bearer token",
 			})
 			c.Abort()
 			return
 		}
 
-		// 4️⃣ 驗證並解析 JWT Token（ParseWithClaims 會同時做 signature 驗證與解析 payload）
-		//    - claims：token 的內容（例如 email、userId、role）會被填入這個 map
-		//    - jwt.ParseWithClaims：接收 token 字串、claims 接收變數、驗證密鑰 callback
+		// 3️⃣ 擷取 Bearer Token 的實際內容
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+		// 4️⃣ 驗證並解析 JWT Token
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return utils.JwtKey, nil
@@ -46,18 +46,21 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		// 5️⃣ 確認 token 有效，若驗證失敗則中止請求
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, utils.JsonResult{StatusCode: "401", Msg: "Invalid token", MsgDetail: "Token 無效請確認"})
+			c.JSON(http.StatusUnauthorized, utils.JsonResult{
+				StatusCode: "401",
+				Msg:        "Invalid token",
+				MsgDetail:  "Token 無效或已過期，請重新登入",
+			})
 			c.Abort()
 			return
 		}
 
-		// 6️⃣ 直接使用解析出的 claims（已是 jwt.MapClaims）
-		//     - 將 email 設入 Gin Context 傳遞給後面 handler 使用
+		// 6️⃣ 從 claims 中取出使用者資訊，設定到 Context 讓後續 handler 使用
 		c.Set("email", claims["email"])
 		c.Set("userId", claims["userId"])
 		c.Set("role", claims["role"])
 
-		// 7️⃣ 這一行是放行（讓後面的 handler 繼續執行）
+		// 7️⃣ 放行
 		c.Next()
 	}
 }

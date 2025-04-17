@@ -41,7 +41,7 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description 請求頭中必須添加 Authorization Bearer {token}，例如 "Authorization: Bearer abcxyz"
+// @description 請求頭中必須添加 Authorization Bearer {token}，Value請填 : Bearer {token}"
 func main() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		// 註冊密碼驗證器
@@ -61,6 +61,8 @@ func main() {
 
 	r := gin.Default()
 	routes.SetupRouter(r)
+
+	log.Printf("API 文檔在 http://localhost%s/swagger/index.html", ":8080")
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

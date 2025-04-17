@@ -11,15 +11,23 @@ package models
  */
 
 type UserDTO struct {
-	ID       uint   `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	ID           uint   `json:"id"`
+	Email        string `json:"email"`
+	Username     string `json:"username"`
+	Role         string `json:"role"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type UserLoginDTO struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+type UserLoginResponseDTO struct {
+	ID       uint   `json:"id"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 type UserRegisterDTO struct {

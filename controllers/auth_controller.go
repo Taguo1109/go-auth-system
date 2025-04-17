@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
@@ -126,95 +125,95 @@ func Login(c *gin.Context) {
 
 	// 使dbUser 變成 JSON 標準格式 ，safeUser 存取需要的資訊進去
 	safeUser := models.UserDTO{
-		ID:       dbUser.ID,
-		Email:    dbUser.Email,
-		Username: dbUser.Username,
-		Role:     dbUser.Role,
+		ID:           dbUser.ID,
+		Email:        dbUser.Email,
+		Username:     dbUser.Username,
+		Role:         dbUser.Role,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
-	userBytes, _ := json.Marshal(safeUser)
+	var responseDTO models.UserLoginResponseDTO
+	bytes, _ := json.Marshal(safeUser)
+	err = json.Unmarshal(bytes, &responseDTO)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, utils.JsonResult{
+			StatusCode: "500",
+			Msg:        "Failed to unmarshal JSON",
+			MsgDetail:  "JSON轉換失敗",
+		})
+		return
+	}
+	userBytes, _ := json.Marshal(responseDTO)
 	config.RDB.Set(config.Ctx, cacheKey, userBytes, 10*time.Minute)
 
-	// 設置 SameSite 模式為 Lax
-	c.SetSameSite(http.SameSiteLaxMode)
-	// 設定 access token Cookie，過期時間以秒計算（2 小時）
-	c.SetCookie("access_token", accessToken, 2*60*60, "/", "localhost", true, true)
-	// 設定 refresh token Cookie，過期 7 天
-	c.SetCookie("refresh_token", refreshToken, 7*24*60*60, "/", "localhost", true, true)
-
-	utils.ReturnSuccess(c, nil, "Login successful")
+	utils.ReturnSuccess(c, safeUser, "Login successful")
 }
 
-// RefreshToken 重新獲取Token
-// @Summary 重新獲取Token
-// @Description 重新取得Token
+// RefreshToken 重新獲取 Token
+// @Summary 使用者重新獲得 Token
+// @Description 傳入 refresh_token 取得新的 access_token 與 refresh_token
 // @Tags Auth
-// @Accept json
 // @Produce json
 // @Success 200 {object} utils.JsonResult
 // @Failure 401 {object} utils.JsonResult
 // @Router /refresh [post]
 func RefreshToken(c *gin.Context) {
+	// 從 JSON 或 localStorage 帶進來
+	var input struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil || input.RefreshToken == "" {
+		utils.ReturnError(c, utils.CodeParamInvalid, nil, "請提供 refresh_token")
+		return
+	}
 
-	// 1️⃣ 從 Cookie 中讀取 refresh token 驗證 refresh token
-	refreshToken, err := c.Cookie("refresh_token")
-	if err != nil || refreshToken == "" {
+	// 解析 token
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(input.RefreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return utils.JwtKey, nil
+	})
+
+	// 驗證 token 是否有效 & 是 refresh token
+	if err != nil || !token.Valid || claims["token_type"] != "refresh" {
+		utils.ReturnError(c, utils.CodeUnauthorized, nil, "refresh_token 無效或過期")
+		return
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		utils.ReturnError(c, utils.CodeUnauthorized, nil, "Token 內容無效")
+		return
+	}
+
+	// 查詢使用者資料
+	var dbUser models.User
+	result := config.DB.Where("email = ?", email).First(&dbUser)
+	if result.Error != nil {
+		utils.ReturnError(c, utils.CodeUnauthorized, nil, "找不到使用者")
+		return
+	}
+
+	// 產生新 token
+	newAccessToken, newRefreshToken, err := utils.GenerateJWT(dbUser.Email, dbUser.ID, "User")
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, utils.JsonResult{
-			StatusCode: "401",
-			Msg:        "Missing refresh token in cookie",
-			MsgDetail:  "找不到 Cookie 裡的refresh_token，請確認",
+			StatusCode: "500",
+			Msg:        "Can't generate access token",
+			MsgDetail:  "無法產生新 token",
 		})
 		return
 	}
 
-	claims := jwt.MapClaims{}
-	fmt.Println("初始化claims:", claims)
-	token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
-		return utils.JwtKey, nil
-	})
-	fmt.Println("賦值後claims:", claims)
-
-	// 檢查是否是refreshToken
-	tokenType, ok := claims["token_type"].(string)
-	if !ok || tokenType != "refresh" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Not a refresh token"})
-		return
+	// 統一回傳 DTO
+	safeUser := models.UserDTO{
+		ID:           dbUser.ID,
+		Email:        dbUser.Email,
+		Username:     dbUser.Username,
+		Role:         dbUser.Role,
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
 	}
-
-	fmt.Print(err)
-	if err != nil || !token.Valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
-		return
-	}
-
-	// 2️⃣ 解析出 email
-	email, ok := claims["email"].(string)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token payload"})
-		return
-	}
-
-	// 3️⃣ 用 email 去資料庫撈使用者資訊
-	var dbUser models.User
-	result := config.DB.Where("email = ?", email).First(&dbUser)
-	if result.Error != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	}
-
-	// 4️⃣ 產生新的 access + refresh token
-	newAccessToken, newRefreshToken, err := utils.GenerateJWT(dbUser.Email, dbUser.ID, "User")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate new tokens"})
-		return
-	}
-
-	// 設置 SameSite 模式為 Lax
-	c.SetSameSite(http.SameSiteLaxMode)
-	// 設置新的 Cookie，更新掉之前的 tokens
-	c.SetCookie("access_token", newAccessToken, 2*60*60, "/", "localhost", true, true)
-	c.SetCookie("refresh_token", newRefreshToken, 7*24*60*60, "/", "localhost", true, true)
-
-	utils.ReturnSuccess(c, nil, "Token refreshed successfully")
+	utils.ReturnSuccess(c, safeUser, "Token refreshed successfully")
 }
 
 // LogoutHandler 登出
@@ -225,6 +224,7 @@ func RefreshToken(c *gin.Context) {
 // @Success 200 {object} utils.JsonResult "成功登出訊息"
 // @Router /logout [post]
 func LogoutHandler(c *gin.Context) {
+
 	// 清除 access_token cookie
 	c.SetCookie("access_token", "", -1, "/", "localhost", true, true)
 	// 清除 refresh_token cookie

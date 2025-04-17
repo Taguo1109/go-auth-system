@@ -190,17 +190,14 @@ const docTemplate = `{
         },
         "/refresh": {
             "post": {
-                "description": "重新取得Token",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "傳入 refresh_token 取得新的 access_token 與 refresh_token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Auth"
                 ],
-                "summary": "重新獲取Token",
+                "summary": "使用者重新獲得 Token",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -265,6 +262,11 @@ const docTemplate = `{
         },
         "/user/profile": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "登入後獲取資料",
                 "produces": [
                     "application/json"
@@ -350,7 +352,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "請求頭中必須添加 Authorization Bearer {token}，例如 \"Authorization: Bearer abcxyz\"",
+            "description": "請求頭中必須添加 Authorization Bearer {token}，Value請填 : Bearer {token}\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
