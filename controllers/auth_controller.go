@@ -94,7 +94,7 @@ func Register(c *gin.Context) {
 // @Failure 401 {object} utils.JsonResult
 // @Router /login [post]
 func Login(c *gin.Context) {
-	var input models.User
+	var input models.UserLoginDTO
 	var dbUser models.User
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})

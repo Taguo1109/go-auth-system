@@ -14,9 +14,9 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"go-auth-system/controllers"
 	_ "go-auth-system/docs"
 	"go-auth-system/middlewares"
+	"go-auth-system/routes/modules"
 )
 
 func SetupRouter(r *gin.Engine) {
@@ -26,33 +26,13 @@ func SetupRouter(r *gin.Engine) {
 	// Swagger文檔路由
 	setupSwaggerRoutes(r)
 
-	// 白名單
-	public := r.Group("/")
-	{
-		public.POST("/login", controllers.Login)
-		public.POST("/register", controllers.Register)
-		public.POST("/refresh", controllers.RefreshToken)
-		r.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "pong"})
-		})
-		public.POST("/logout", controllers.LogoutHandler)
-	}
-
-	// 全域錯誤測試
-	errTest := r.Group("/err")
-	{
-		errTest.GET("assertion-panic", controllers.AssertionPanic)
-		errTest.GET("slice-panic", controllers.SlicePanic)
-		errTest.GET("nil-panic", controllers.NilPanic)
-		errTest.GET("test-panic", controllers.TestPanic)
-	}
-
+	// 白名單(public)
+	modules.SetPublicRoutes(r)
+	// 全域錯誤測試(err)
+	modules.SetErrRoutes(r)
 	// 需權限的名單
-	user := r.Group("/user")
-	user.Use(middlewares.JWTAuthMiddleware())
-	{
-		user.GET("/profile", controllers.GetProfile)
-	}
+	//(user)
+	modules.SetUserRoutes(r)
 
 }
 
