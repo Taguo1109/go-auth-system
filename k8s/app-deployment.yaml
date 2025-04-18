@@ -1,38 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-app
+  name: go-app     # Deployment 名稱（用來管理 Pod）
 spec:
-  replicas: 1
+  replicas: 1      # 想要幾個副本 Pod，通常開發時設為 1
   selector:
     matchLabels:
-      app: go-app
+      app: go-app  # 匹配這個 label 的 Pod 會受這個 Deployment 管理
   template:
     metadata:
       labels:
-        app: go-app
+        app: go-app   # 給 Pod 的 label（要與上面 matchLabels 對應）
     spec:
       containers:
-        - name: go-app
-          image: go-app:latest
-          imagePullPolicy: Never
+        - name: go-app             # 容器名稱
+          image: go-app:latest     # 使用的映像名稱（必須事先 build 並 load 進 KIND）
+          imagePullPolicy: Never   # 不從 Docker Hub 拉，使用本地映像（⚠ 用在 KIND 必設）
           ports:
-            - containerPort: 8080
+            - containerPort: 8080  # Container 裡面對外服務的 port（你 go app 的 port）
           envFrom:
             - configMapRef:
-                name: app-config
+                name: app-config   # 讀取 k8s/configmap.yaml 裡的變數
             - secretRef:
-                name: app-secret
+                name: app-secret   # 讀取 k8s/secret.yaml 裡的變數（如 DB_PASSWORD）
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-app
+  name: go-app       # Service 名稱（會產生 DNS 名稱 go-app.default.svc.cluster.local）
 spec:
-  type: NodePort
+  type: NodePort     # 使用 NodePort 類型，對外開放 port
   selector:
     app: go-app
   ports:
-    - port: 80
-      targetPort: 8080
-      nodePort: 30080
+    - port: 80           # Service 對外提供的 port（K8s 內部訪問用）
+      targetPort: 8080   # 對應到 Pod 裡的 containerPort: 8080
+      nodePort: 30080    # KIND 會對外開這個 port ➜ 可用 http://localhost:30080 訪問

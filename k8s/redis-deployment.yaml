@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: redis              # Deployment 名稱
 spec:
-  replicas: 1
+  replicas: 1              # 僅建立 1 個 Redis Pod（開發用足夠）
   selector:
     matchLabels:
-      app: redis
+      app: redis           # 與下方 Pod 的 label 對應，讓 Deployment 可以管理它
   template:
     metadata:
       labels:
-        app: redis
+        app: redis         # Pod 的標籤，Service 也會用這個 selector
     spec:
       containers:
         - name: redis
-          image: redis:alpine
+          image: redis:alpine         # 使用官方 Redis 輕量映像
           ports:
-            - containerPort: 6379
+            - containerPort: 6379     # Redis 預設對外 port
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: redis              # 內部 DNS 名稱為 redis.default.svc.cluster.local
 spec:
   selector:
-    app: redis
+    app: redis             # 只連到 app=redis 的 Pod
   ports:
-    - port: 6379
+    - port: 6379           # Service port 同樣設定為 6379

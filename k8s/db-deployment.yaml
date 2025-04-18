@@ -4,10 +4,10 @@ metadata:
   name: mysql-pvc
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteOnce            # 只能被一個 Node 以讀寫方式掛載（常見設定）
   resources:
     requests:
-      storage: 1Gi
+      storage: 1Gi             # 請求 1Gi 的儲存空間（hostPath、Docker Desktop 會自動處理）
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,12 +30,12 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: app-secret       # 來自 secret.yaml
                   key: DB_PASSWORD
             - name: MYSQL_DATABASE
               valueFrom:
                 configMapKeyRef:
-                  name: app-config
+                  name: app-config       # 來自 configmap.yaml
                   key: DB_NAME
             - name: MYSQL_USER
               valueFrom:
@@ -48,14 +48,14 @@ spec:
                   name: app-secret
                   key: DB_PASSWORD
           ports:
-            - containerPort: 3306
+            - containerPort: 3306        # MySQL 預設 port
           volumeMounts:
-            - mountPath: /var/lib/mysql
-              name: mysql-storage
+            - mountPath: /var/lib/mysql  # MySQL 寫入資料的地方
+              name: mysql-storage        # 對應到 volumes 裡的名稱
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
-            claimName: mysql-pvc
+            claimName: mysql-pvc         # 對應上面建立的 PVC
 ---
 apiVersion: v1
 kind: Service
@@ -63,6 +63,6 @@ metadata:
   name: mysql
 spec:
   selector:
-    app: mysql
+    app: mysql            # 匹配 Deployment 產生的 Pod
   ports:
-    - port: 3306
+    - port: 3306          # MySQL 服務 port（內部使用）
