@@ -50,3 +50,8 @@ docker-compose.override.yml
 # Node.js（如果前端會同 repo）
 node_modules/
 dist/
+
+# fly 相關
+.dockerignore
+fly.toml
+fly-deploy.yml

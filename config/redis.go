@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"os"
@@ -30,12 +31,13 @@ var Ctx = context.Background()
 // 可能錯誤範例：
 // ❌ Redis connection error: dial tcp 172.xx.xx.xx:6379: connect: connection refused
 func InitRedis() {
-	addr := os.Getenv("REDIS_ADDR")
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: "",
-		DB:       0,
+		Addr:      os.Getenv("REDIS_ADDR"),
+		Username:  "default", // 固定
+		Password:  os.Getenv("REDIS_PASS"),
+		TLSConfig: &tls.Config{}, // TLS
+		DB:        0,
 	})
 
 	for i := 1; i <= 10; i++ {
