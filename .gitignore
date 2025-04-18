@@ -29,6 +29,7 @@ pkg/
 .env*
 .env.local
 .env.*.local
+k8s/secret.yaml
 
 # DB dump or sqlite
 *.db
