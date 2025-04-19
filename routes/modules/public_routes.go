@@ -24,7 +24,7 @@ func SetPublicRoutes(r *gin.Engine) {
 		public.POST("/register", controllers.Register)
 		public.POST("/refresh", controllers.RefreshToken)
 		r.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "pong"})
+			c.JSON(200, gin.H{"message": "測試是否自動部署"})
 		})
 		public.POST("/logout", controllers.LogoutHandler)
 	}
