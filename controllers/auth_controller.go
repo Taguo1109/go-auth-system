@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go-auth-system/config"
 	"go-auth-system/models"
+	"go-auth-system/services"
 	"go-auth-system/utils"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -49,37 +50,8 @@ func Register(c *gin.Context) {
 		utils.ReturnError(c, utils.CodeParamInvalid, err.Error())
 		return
 	}
-
-	// 加密密碼
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-	input.Password = string(hashedPassword)
-
-	// 將 DTO 映射成 DB entity
-	userEntity := models.User{
-		Email:    input.Email,
-		Username: input.Username,
-		Password: string(hashedPassword),
-		Role:     input.Role,
-	}
-
-	// 建立使用者
-	result := config.DB.Create(&userEntity)
-	if result.Error != nil {
-		utils.ReturnError(c, utils.CodeEmailExists, "該用戶已存在")
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": input.Email + " :User registered successfully!",
-		"user": gin.H{
-			"email":    input.Email,
-			"userName": input.Username,
-			"role":     input.Role,
-		},
-	})
+	// 呼叫service，內部會直接回 JSON
+	services.NewAuthService().Register(c, input)
 }
 
 // Login 會員登入

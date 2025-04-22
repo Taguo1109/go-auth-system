@@ -31,14 +31,23 @@ var Ctx = context.Background()
 // 可能錯誤範例：
 // ❌ Redis connection error: dial tcp 172.xx.xx.xx:6379: connect: connection refused
 func InitRedis() {
+	addr := os.Getenv("REDIS_ADDR")
+	pass := os.Getenv("REDIS_PASS")
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:      os.Getenv("REDIS_ADDR"),
-		Username:  "default", // 固定
-		Password:  os.Getenv("REDIS_PASS"),
-		TLSConfig: &tls.Config{}, // TLS
-		DB:        0,
-	})
+	// Redis 設定
+	opts := &redis.Options{
+		Addr:     addr,
+		Username: "default",
+		Password: pass,
+		DB:       0,
+	}
+	// 如果不是本地就打開 TLS
+	if addr != "localhost:6379" {
+		opts.TLSConfig = &tls.Config{}
+	}
+
+	// 建立Redis連線
+	rdb := redis.NewClient(opts)
 
 	for i := 1; i <= 10; i++ {
 		_, err := rdb.Ping(Ctx).Result()

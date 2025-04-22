@@ -26,7 +26,7 @@ func GlobalErrorHandler() gin.HandlerFunc {
 				// 捕捉 panic，回傳統一格式
 				c.JSON(http.StatusInternalServerError, utils.JsonResult{
 					StatusCode: "500",
-					Msg:        "Internal server error",
+					Msg:        "全域攔截：伺服器錯誤",
 					MsgDetail:  fmt.Sprintf("%v", err),
 					Data:       nil,
 				})
